@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hotel Dashboard</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- jsPDF for PDF receipts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="app">
+
+    
+    <aside class="sidebar">
+      <div class="brand">My Hotel ❤️</div>
+      <nav>
+        <button class="nav-btn active" data-tab="roomsTab">Rooms</button>
+        <button class="nav-btn" data-tab="bookingsTab">Bookings</button>
+        <button class="nav-btn" data-tab="historyTab">History</button>
+        <div class="spacer"></div>
+        <button id="darkToggle" class="ghost-btn">Toggle Dark</button>
+        
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Rooms</h1>
+        </div>
+        <div class="user">
+          <span id="adminName"><b>❤️ HARSH ❤️</b></span>
+        </div>
+      </header>
+      <section class="content">
+
+        <div id="roomsTab" class="tab">
+          <div class="container">
+
+            <div class="controls">
+              <div class="controls-left">
+                <div class="filters">
+                  <button id="filterAll" class="filter-btn active">All</button>
+                  <button id="filterAvailable" class="filter-btn">Available</button>
+                  <button id="filterBooked" class="filter-btn">Booked</button>
+                </div>
+
+                <div class="category">
+                  <label for="categorySelect">Category:</label>
+                  <select id="categorySelect">
+                    <option value="All">All</option>
+                    <option value="Standard">Standard</option>
+                    <option value="AC">AC</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Non-AC">Non-AC</option>
+                  </select>
+                </div>
+
+                <div class="search">
+                  <input id="searchInput" type="search" placeholder="Search room #">
+                  <button id="searchClear" class="btn small ghost">Clear</button>
+                </div>
+              </div>
+
+              <div class="controls-right">
+                <div class="stats">
+                  <div>Total: <span id="statTotal">0</span></div>
+                  <div>Booked: <span id="statBooked">0</span></div>
+                  <div>Available: <span id="statAvailable">0</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="roomContainer" class="room-grid"></div>
+
+         
+            <div class="pagination" id="pagination"></div>
+          </div>
+        </div>
+
+        <div id="bookingsTab" class="tab hidden">
+          <div class="container panel">
+            <div class="panel-left">
+              <h2>New Booking / Billing</h2>
+              <form id="bookingForm" class="form-card">
+                <label>Room</label>
+                <select id="bookingRoom"></select>
+
+                <label>Room Type</label>
+                <input type="text" id="bookingRoomType" readonly>
+
+                <label>Guest Name</label>
+                <input id="bookingGuest" required>
+
+                <label>Phone</label>
+                <input id="bookingPhone">
+
+                <label>Email</label>
+                <input id="bookingEmail" type="email">
+
+                <label>Check-in</label>
+                <input id="bookingCheckin" type="date">
+
+                <label>Check-out</label>
+                <input id="bookingCheckout" type="date">
+
+                <label>Extras (per night ₹)</label>
+                <input id="bookingExtras" type="number" min="0" value="0">
+
+                <div class="form-actions">
+                  <button type="submit" class="btn primary">Calculate & Book</button>
+                  <button type="button" id="resetBooking" class="btn ghost">Reset</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="panel-right">
+              <h3>Billing</h3>
+              <div id="billArea" class="bill">No calculation yet.</div>
+              <div style="margin-top:8px;">
+                <button id="downloadLastReceipt" class="btn ghost" disabled>Download Last Receipt</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="historyTab" class="tab hidden">
+          <div class="container">
+            <h2>Bookings History</h2>
+            <div class="history-card">
+              <table id="historyTable">
+                <thead>
+                  <tr>
+                    <th>Receipt ID</th>
+                    <th>Guest</th>
+                    <th>Room</th>
+                    <th>Dates</th>
+                    <th>Total (₹)</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+  <div id="checkinModal" class="modal">
+    <div class="modal-content large">
+      <h2 id="modalTitle">Check-In</h2>
+
+      <form id="checkinForm" class="modal-form">
+        <div class="row">
+          <div class="col">
+            <label>Room Number</label>
+            <input id="modalRoomNumber" readonly>
+          </div>
+          <div class="col">
+            <label>Type</label>
+            <input id="modalRoomType" readonly>
+          </div>
+        </div>
+
+        <label>Guest Name</label>
+        <input id="modalGuestName" required>
+
+        <label>Phone</label>
+        <input id="modalPhone">
+
+        <label>Email</label>
+        <input id="modalEmail" type="email">
+
+        <div class="row">
+          <div class="col">
+            <label>Check-in Date</label>
+            <input id="modalCheckin" type="date" required>
+          </div>
+          <div class="col">
+            <label>Check-out Date</label>
+            <input id="modalCheckout" type="date" required>
+          </div>
+        </div>
+
+        <label>Extras per night (₹)</label>
+        <input id="modalExtras" type="number" min="0" value="0">
+
+        <div id="modalBilling" class="bill small">Billing summary will appear here after calculating.</div>
+
+        <div class="modal-actions">
+          <button type="button" id="calcBillBtn" class="btn ghost">Calculate</button>
+          <button type="submit" class="btn primary">Confirm Booking</button>
+          <button type="button" id="cancelModalBtn" class="btn ghost">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <footer class="footer">
+  <p>Made by ❤️ <strong>Harsh Kumar</strong></p>
+  <p>📞 7830539711 &nbsp; | &nbsp; ✉️ harshkushwah19844@gmail.com</p>
+</footer>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
